@@ -1,10 +1,11 @@
-import { Main, Title } from '@/components/ui'
+import { Main } from '@/components/ui'
+import Dip from './dip'
 
 export default function Home() {
   return (
     <Main className='flex flex-col p-4'>
-      <div className='flex flex-grow flex-col items-center justify-center space-y-4'>
-        <Title>dip</Title>
+      <div className='flex flex-grow flex-col space-y-4'>
+        <Dip />
       </div>
     </Main>
   )
