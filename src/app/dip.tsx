@@ -50,7 +50,7 @@ export default function Dip() {
           className='w-full bg-cobalt'
         />
       </div>
-      <p>{dip}</p>
+      <Title>{dip}</Title>
     </>
   )
 }
