@@ -1,9 +1,26 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
+import { parse } from 'date-fns'
+
 import { Title } from '@/components/ui'
 import { getBounce } from '@/lib/bounce'
 import useForm from '@/lib/useForm'
 import useLocalStorage from '@/lib/useLocalStorage'
+import getTimeLeft from '@/lib/getTimeLeft'
+
+function getDipAsDate(dip: string) {
+  // Define the format of your time string.
+  // 'h' for 12-hour format (1-12), 'hh' for 01-12 (padded)
+  // 'm' for minutes (0-59), 'mm' for 00-59 (padded)
+  // 'aa' for AM/PM marker (AM, PM)
+  const format = 'h:mm aa'
+
+  // Parse the time string using the format and the reference date
+  const parsedDate = parse(`${dip} PM`, format, new Date())
+
+  return parsedDate
+}
 
 export default function Dip() {
   const [storedStart, setStoredStart] = useLocalStorage('dip-start', '07:00')
@@ -21,6 +38,31 @@ export default function Dip() {
   const { T: dip } = storedStart
     ? getBounce(String(start), String(startLunch), String(endLunch))
     : { T: null }
+
+  const [timeLeft, setTimeLeft] = useState('')
+
+  const intervalRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    const updateTimeLeft = () => {
+      const dipAsDate = getDipAsDate(dip ?? '')
+      const timeLeft = getTimeLeft(dipAsDate)
+
+      setTimeLeft(timeLeft)
+      if (timeLeft === 'time has passed!') {
+        clearInterval(intervalRef.current as unknown as number)
+        intervalRef.current = null
+      }
+    }
+
+    intervalRef.current = setInterval(updateTimeLeft, 1000) as unknown as number
+    return () => {
+      if (intervalRef.current !== null) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
+    }
+  }, [dip])
   return (
     <>
       <Title>dip</Title>
@@ -51,6 +93,7 @@ export default function Dip() {
         />
       </div>
       <Title>{dip}</Title>
+      <Title>{timeLeft}</Title>
     </>
   )
 }
