@@ -4,14 +4,24 @@ type Time = {
   Minute: number
 }
 
-export function getBounce(start: string, lunchStart: string, lunchEnd: string) {
+export function getBounce({
+  start,
+  lunchStart,
+  lunchEnd,
+  hours,
+}: {
+  start: string
+  lunchStart: string
+  lunchEnd: string
+  hours: number
+}) {
   const startTime = getTime(start)
   const lunchStartTime = getTime(lunchStart)
   const lunchEndTime = getTime(lunchEnd)
 
   const beforeLunch = getTimeDifference(startTime, lunchStartTime)
   // const fullTime = getTimeHM(7, 59)
-  const fullTime = getTimeHM(8, 0)
+  const fullTime = getTimeHM(hours, 0)
   const afterLunch = getTimeDifference(beforeLunch, fullTime)
   const bounce = getTimeSum(lunchEndTime, afterLunch)
   return bounce

@@ -22,21 +22,31 @@ function getDipAsDate(dip: string) {
   return parsedDate
 }
 
+const defaultValues = {
+  startLunch: '12:00',
+  endLunch: '12:30',
+  hours: 8,
+}
+
 export default function Dip() {
   const [storedStart, setStoredStart] = useLocalStorage('dip-start', '07:00')
   const { values, handleChange } = useForm({
     initialValues: {
       start: storedStart,
-      startLunch: '12:00',
-      endLunch: '12:30',
+      ...defaultValues,
     },
     onSubmit: data => {
       console.log(data)
     },
   })
-  const { start, startLunch, endLunch } = values
+  const { start, startLunch, endLunch, hours } = values
   const { T: dip } = storedStart
-    ? getBounce(String(start), String(startLunch), String(endLunch))
+    ? getBounce({
+        start: String(start),
+        lunchStart: String(startLunch),
+        lunchEnd: String(endLunch),
+        hours: Number(hours),
+      })
     : { T: null }
 
   const [timeLeft, setTimeLeft] = useState('')
@@ -89,6 +99,13 @@ export default function Dip() {
           value={String(endLunch)}
           onChange={handleChange}
           type='time'
+          className='w-full bg-cobalt'
+        />
+        <input
+          name='hours'
+          value={Number(hours)}
+          onChange={handleChange}
+          type='number'
           className='w-full bg-cobalt'
         />
       </div>
