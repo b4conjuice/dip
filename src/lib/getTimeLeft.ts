@@ -1,8 +1,6 @@
-import {
-  differenceInMilliseconds,
-  intervalToDuration,
-  formatDuration,
-} from 'date-fns'
+import { differenceInMilliseconds, intervalToDuration } from 'date-fns'
+
+const pad = (n: number) => n.toString().padStart(2, '0')
 
 /**
  * Calculates the time remaining until a target time.
@@ -23,8 +21,6 @@ export default function getTimeLeft(targetTime: Date) {
   // Convert the difference into a Duration object
   const duration = intervalToDuration({ start: now, end: target })
 
-  // Format the duration into a human-readable string
-  // You can customize which units to include by passing a `format` array
-  // For example, to only show hours and minutes: formatDuration(duration, { format: ['hours', 'minutes'] })
-  return formatDuration(duration, { delimiter: ', ' })
+  const { hours = 0, minutes = 0, seconds = 0 } = duration
+  return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
 }

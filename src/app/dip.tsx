@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { parse } from 'date-fns'
+import { addHours, addMinutes, format, parse } from 'date-fns'
 
 import { Title } from '@/components/ui'
 import { getBounce } from '@/lib/bounce'
@@ -9,7 +9,7 @@ import useForm from '@/lib/useForm'
 import useLocalStorage from '@/lib/useLocalStorage'
 import getTimeLeft from '@/lib/getTimeLeft'
 
-function getDipAsDate(dip: string) {
+function getTimeStringAsDate(time: string) {
   // Define the format of your time string.
   // 'h' for 12-hour format (1-12), 'hh' for 01-12 (padded)
   // 'm' for minutes (0-59), 'mm' for 00-59 (padded)
@@ -17,7 +17,7 @@ function getDipAsDate(dip: string) {
   const format = 'h:mm aa'
 
   // Parse the time string using the format and the reference date
-  const parsedDate = parse(`${dip} PM`, format, new Date())
+  const parsedDate = parse(`${time} PM`, format, new Date())
 
   return parsedDate
 }
@@ -50,12 +50,17 @@ export default function Dip() {
     : { T: null }
 
   const [timeLeft, setTimeLeft] = useState('')
-
   const intervalRef = useRef<number | null>(null)
 
+  const [timeLeftBeforeLunch, setTimeLeftBeforeLunch] = useState('')
+  const intervalRefForTimeLeftBeforeLunch = useRef<number | null>(null)
+  const parsedStart = start ? parse(String(start), 'HH:mm', new Date()) : null
+  const shouldStartLunch = parsedStart
+    ? addMinutes(addHours(parsedStart, 4), 59)
+    : null
   useEffect(() => {
     const updateTimeLeft = () => {
-      const dipAsDate = getDipAsDate(dip ?? '')
+      const dipAsDate = getTimeStringAsDate(dip ?? '')
       const timeLeft = getTimeLeft(dipAsDate)
 
       setTimeLeft(timeLeft)
@@ -66,13 +71,34 @@ export default function Dip() {
     }
 
     intervalRef.current = setInterval(updateTimeLeft, 1000) as unknown as number
+
+    const updateTimeLeftBeforeLunch = () => {
+      console.log('updateTimeLeftBeforeLunch')
+      if (!shouldStartLunch) return
+      const timeLeft = getTimeLeft(shouldStartLunch)
+      setTimeLeftBeforeLunch(timeLeft)
+      if (timeLeft === 'time has passed!') {
+        clearInterval(
+          intervalRefForTimeLeftBeforeLunch.current as unknown as number
+        )
+        intervalRefForTimeLeftBeforeLunch.current = null
+      }
+    }
+    intervalRefForTimeLeftBeforeLunch.current = setInterval(
+      updateTimeLeftBeforeLunch,
+      1000
+    ) as unknown as number
     return () => {
       if (intervalRef.current !== null) {
         clearInterval(intervalRef.current)
         intervalRef.current = null
       }
+      if (intervalRefForTimeLeftBeforeLunch.current !== null) {
+        clearInterval(intervalRefForTimeLeftBeforeLunch.current)
+        intervalRefForTimeLeftBeforeLunch.current = null
+      }
     }
-  }, [dip])
+  }, [dip, shouldStartLunch])
   return (
     <>
       <Title>dip</Title>
@@ -87,6 +113,12 @@ export default function Dip() {
           type='time'
           className='w-full bg-cobalt'
         />
+        {shouldStartLunch && (
+          <>
+            <Title>take lunch by: {format(shouldStartLunch, 'HH:mm aa')}</Title>
+            <Title>{timeLeftBeforeLunch}</Title>
+          </>
+        )}
         <input
           name='startLunch'
           value={String(startLunch)}
