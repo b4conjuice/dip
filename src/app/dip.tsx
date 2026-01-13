@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { addHours, addMinutes, format, parse } from 'date-fns'
+import { useForm } from 'react-hook-form'
 
 import { Title } from '@/components/ui'
 import { getBounce } from '@/lib/bounce'
-import useForm from '@/lib/useForm'
 import useLocalStorage from '@/lib/useLocalStorage'
 import getTimeLeft from '@/lib/getTimeLeft'
 
@@ -30,16 +30,27 @@ const defaultValues = {
 
 export default function Dip() {
   const [storedStart, setStoredStart] = useLocalStorage('dip-start', '07:00')
-  const { values, handleChange } = useForm({
-    initialValues: {
+  const initialValues = useMemo(() => {
+    return {
       start: storedStart,
       ...defaultValues,
-    },
-    onSubmit: data => {
-      console.log(data)
-    },
+    }
+  }, [storedStart])
+  const { register, reset, watch } = useForm({
+    defaultValues: initialValues,
   })
-  const { start, startLunch, endLunch, hours } = values
+  useEffect(() => {
+    reset(initialValues)
+  }, [initialValues, reset])
+  const start = watch('start')
+  const startLunch = watch('startLunch')
+  const endLunch = watch('endLunch')
+  const hours = watch('hours')
+
+  useEffect(() => {
+    if (!start) return
+    setStoredStart(start)
+  }, [start, setStoredStart])
   const { T: dip } = storedStart
     ? getBounce({
         start: String(start),
@@ -104,12 +115,7 @@ export default function Dip() {
       <Title>dip</Title>
       <div className='flex flex-col space-y-4'>
         <input
-          name='start'
-          value={String(start)}
-          onChange={e => {
-            handleChange(e)
-            setStoredStart(e.currentTarget.value)
-          }}
+          {...register('start')}
           type='time'
           className='w-full bg-cobalt'
         />
@@ -120,23 +126,17 @@ export default function Dip() {
           </>
         )}
         <input
-          name='startLunch'
-          value={String(startLunch)}
-          onChange={handleChange}
+          {...register('startLunch')}
           type='time'
           className='w-full bg-cobalt'
         />
         <input
-          name='endLunch'
-          value={String(endLunch)}
-          onChange={handleChange}
+          {...register('endLunch')}
           type='time'
           className='w-full bg-cobalt'
         />
         <input
-          name='hours'
-          value={Number(hours)}
-          onChange={handleChange}
+          {...register('hours')}
           type='number'
           className='w-full bg-cobalt'
         />
