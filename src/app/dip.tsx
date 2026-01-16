@@ -72,10 +72,10 @@ export default function Dip() {
   useEffect(() => {
     const updateTimeLeft = () => {
       const dipAsDate = getTimeStringAsDate(dip ?? '')
-      const timeLeft = getTimeLeft(dipAsDate)
+      const { asTimeString: timeLeft, asMilliseconds } = getTimeLeft(dipAsDate)
 
       setTimeLeft(timeLeft)
-      if (timeLeft === 'time has passed!') {
+      if (asMilliseconds <= 0) {
         clearInterval(intervalRef.current as unknown as number)
         intervalRef.current = null
       }
@@ -84,21 +84,23 @@ export default function Dip() {
     intervalRef.current = setInterval(updateTimeLeft, 1000) as unknown as number
 
     const updateTimeLeftBeforeLunch = () => {
-      console.log('updateTimeLeftBeforeLunch')
       if (!shouldStartLunch) return
-      const timeLeft = getTimeLeft(shouldStartLunch)
+      const { asTimeString: timeLeft, asMilliseconds } =
+        getTimeLeft(shouldStartLunch)
       setTimeLeftBeforeLunch(timeLeft)
-      if (timeLeft === 'time has passed!') {
+      if (asMilliseconds <= 0) {
         clearInterval(
           intervalRefForTimeLeftBeforeLunch.current as unknown as number
         )
         intervalRefForTimeLeftBeforeLunch.current = null
       }
     }
+
     intervalRefForTimeLeftBeforeLunch.current = setInterval(
       updateTimeLeftBeforeLunch,
       1000
     ) as unknown as number
+
     return () => {
       if (intervalRef.current !== null) {
         clearInterval(intervalRef.current)
@@ -112,7 +114,6 @@ export default function Dip() {
   }, [dip, shouldStartLunch])
   return (
     <>
-      <Title>dip</Title>
       <div className='flex flex-col space-y-4'>
         <input
           {...register('start')}
@@ -121,7 +122,7 @@ export default function Dip() {
         />
         {shouldStartLunch && (
           <>
-            <Title>take lunch by: {format(shouldStartLunch, 'HH:mm aa')}</Title>
+            <Title>lunch b4: {format(shouldStartLunch, 'HH:mm aa')}</Title>
             <Title>{timeLeftBeforeLunch}</Title>
           </>
         )}
@@ -141,7 +142,7 @@ export default function Dip() {
           className='w-full bg-cobalt'
         />
       </div>
-      <Title>{dip}</Title>
+      <Title>dip: {dip}</Title>
       <Title>{timeLeft}</Title>
     </>
   )

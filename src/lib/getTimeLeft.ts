@@ -13,14 +13,16 @@ export default function getTimeLeft(targetTime: Date) {
 
   // Calculate the difference in milliseconds
   const diffMs = differenceInMilliseconds(target, now)
-
-  if (diffMs <= 0) {
-    return 'time has passed!'
-  }
+  const inPast = diffMs <= 0
 
   // Convert the difference into a Duration object
-  const duration = intervalToDuration({ start: now, end: target })
+  const duration = inPast
+    ? intervalToDuration({ start: target, end: now })
+    : intervalToDuration({ start: now, end: target })
 
   const { hours = 0, minutes = 0, seconds = 0 } = duration
-  return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
+  return {
+    asMilliseconds: diffMs,
+    asTimeString: `${inPast ? '-' : ''}${pad(hours)}:${pad(minutes)}:${pad(seconds)}`,
+  }
 }
