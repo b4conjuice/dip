@@ -122,7 +122,7 @@ export default function Dip() {
         />
         {shouldStartLunch && (
           <>
-            <Title>lunch b4: {format(shouldStartLunch, 'HH:mm aa')}</Title>
+            <Title>lunch: {format(shouldStartLunch, 'HH:mm aa')}</Title>
             <Title>{timeLeftBeforeLunch}</Title>
           </>
         )}
